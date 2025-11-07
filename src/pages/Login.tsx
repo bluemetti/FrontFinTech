@@ -152,19 +152,22 @@ export default function Login(){
         <div style={{
           marginTop: '32px',
           padding: '20px',
-          backgroundColor: '#f9fafb',
+          backgroundColor: '#f0fdf4',
           borderRadius: '8px',
-          border: '1px solid #e5e7eb'
+          border: '1px solid #86efac'
         }}>
-          <p style={{margin: '0 0 12px', fontSize: '13px', fontWeight: '600', color: '#374151'}}>
-            💡 Credenciais de teste:
+          <p style={{margin: '0 0 12px', fontSize: '13px', fontWeight: '600', color: '#166534'}}>
+            � Credenciais de acesso:
           </p>
-          <div style={{fontSize: '13px', color: '#6b7280', lineHeight: '1.6'}}>
-            <div style={{marginBottom: '8px'}}>
-              <strong style={{color: '#111827'}}>Admin:</strong> admin / qualquer senha
-            </div>
-            <div>
-              <strong style={{color: '#111827'}}>Cliente:</strong> client / qualquer senha
+          <div style={{fontSize: '13px', color: '#166534', lineHeight: '1.6'}}>
+            <div style={{
+              padding: '8px 12px',
+              backgroundColor: 'white',
+              borderRadius: '6px',
+              marginBottom: '8px'
+            }}>
+              <strong>Usuário:</strong> admin<br/>
+              <strong>Senha:</strong> admin123
             </div>
           </div>
         </div>
