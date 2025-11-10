@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import FinancingList from './pages/FinancingList'
 import FinancingDetail from './pages/FinancingDetail'
 import FinancingCreate from './pages/FinancingCreate'
+import SalesOverview from './pages/SalesOverview'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
             <Route path="/financiamentos" element={<FinancingList />} />
             <Route path="/financiamentos/novo" element={<FinancingCreate />} />
             <Route path="/financiamentos/:id" element={<FinancingDetail />} />
+            <Route path="/vendas" element={<SalesOverview />} />
           </Route>
 
           <Route path="*" element={<div style={{padding:20}}>Página não encontrada. <a href="/">Ir para Início</a></div>} />

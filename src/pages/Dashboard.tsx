@@ -112,6 +112,19 @@ export default function Dashboard() {
           >
             📋 Lista
           </Link>
+          <Link
+            to="/vendas"
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#10b981',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '6px',
+              fontWeight: '500'
+            }}
+          >
+            Vendas & Produtos
+          </Link>
           <button
             onClick={logout}
             style={{
