@@ -76,6 +76,7 @@ button:active:not(:disabled) {
 }
 .page-header .page-actions {
   justify-content: flex-end;
+  flex-wrap: nowrap;
 }
 
 .cards-grid,
@@ -212,11 +213,11 @@ button:active:not(:disabled) {
 
   .page-actions {
     width: 100%;
+    justify-content: flex-start;
   }
 
   .page-header .page-actions {
-    flex-direction: column;
-    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .table-wrapper table {

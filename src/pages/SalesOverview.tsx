@@ -124,18 +124,25 @@ export default function SalesOverview() {
     }))
   }, [products])
 
-  const renderStatusBadge = (status: string) => {
-    const colors: Record<string, string> = {
-      available: '#10b981',
-      out_of_stock: '#ef4444',
-      inactive: '#6b7280',
-      processing: '#fbbf24',
-      paid: '#3b82f6',
-      shipped: '#06b6d4',
-      delivered: '#22c55e',
-      cancelled: '#ef4444',
-      refunded: '#fb7185'
-    }
+  const renderStatusBadge = (
+    status: string,
+    type: 'product' | 'sale' = 'sale'
+  ) => {
+    const palette = type === 'product'
+      ? {
+          available: '#10b981',
+          out_of_stock: '#ef4444',
+          inactive: '#6b7280'
+        }
+      : {
+          processing: '#fbbf24',
+          paid: '#3b82f6',
+          shipped: '#06b6d4',
+          delivered: '#22c55e',
+          cancelled: '#ef4444',
+          refunded: '#fb7185'
+        }
+
     const labels: Record<string, string> = {
       available: 'Disponível',
       out_of_stock: 'Sem estoque',
@@ -147,9 +154,10 @@ export default function SalesOverview() {
       cancelled: 'Cancelado',
       refunded: 'Reembolsado'
     }
+
     return (
       <span style={{
-        backgroundColor: colors[status] || '#6b7280',
+        backgroundColor: palette[status] || '#6b7280',
         color: 'white',
         padding: '4px 12px',
         borderRadius: '12px',
