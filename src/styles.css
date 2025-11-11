@@ -76,7 +76,33 @@ button:active:not(:disabled) {
 }
 .page-header .page-actions {
   justify-content: flex-end;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+}
+
+.tab-controls {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.tab-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filters-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.filters-stack > * {
+  flex: 1 1 220px;
+  min-width: 160px;
 }
 
 .cards-grid,
@@ -142,6 +168,16 @@ button:active:not(:disabled) {
     margin-right: 16px;
     text-align: left;
   }
+
+  .tab-buttons button,
+  .filters-stack > * {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .modal-card {
+    padding: 16px;
+  }
 }
 
 .section-flex {
@@ -163,6 +199,67 @@ button:active:not(:disabled) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.modal-card {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px rgba(15, 23, 42, 0.25);
+  padding: 24px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-card input,
+.modal-card select,
+.modal-card textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.modal-card textarea {
+  resize: vertical;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ghost-button {
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  color: #111827;
 }
 
 .auth-wrapper {
@@ -220,8 +317,21 @@ button:active:not(:disabled) {
     flex-wrap: wrap;
   }
 
+  .tab-controls {
+    flex-direction: column;
+  }
+
+  .filters-stack {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .modal-card {
+    padding: 20px;
+  }
+
   .table-wrapper table {
-    min-width: 640px;
+    min-width: 100%;
   }
 }
 
@@ -230,6 +340,15 @@ button:active:not(:disabled) {
   .page-actions button {
     width: 100%;
     text-align: center;
+  }
+
+  .modal-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    width: 100%;
   }
 
   .auth-card {

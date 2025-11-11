@@ -167,7 +167,9 @@ export default function FinancingList(){
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '16px'
+            marginBottom: '16px',
+            flexWrap: 'wrap',
+            gap: '12px'
           }}>
             <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>🔍 Filtros</h3>
             <Link
@@ -179,7 +181,8 @@ export default function FinancingList(){
                 textDecoration: 'none',
                 borderRadius: '6px',
                 fontWeight: '500',
-                fontSize: '14px'
+                fontSize: '14px',
+                flexShrink: 0
               }}
             >
               ➕ Novo Financiamento
@@ -249,25 +252,7 @@ export default function FinancingList(){
                 Limpar Filtros
               </button>
             </div>
-            <div>
-              <Link
-                to="/financiamentos/novo"
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontWeight: '500',
-                  fontSize: '14px',
-                  textDecoration: 'none',
-                  display: 'inline-block'
-                }}
-              >
-                ➕ Novo Financiamento
-              </Link>
-            </div>
+
           </div>
         </div>
 

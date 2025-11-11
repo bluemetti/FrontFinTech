@@ -6,6 +6,28 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieC
 
 const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
+type ProductFormState = {
+  price: string
+  stock: string
+  status: Product['status']
+  engagementRewardPoints: string
+  description: string
+}
+
+const initialProductForm: ProductFormState = {
+  price: '',
+  stock: '',
+  status: 'available',
+  engagementRewardPoints: '',
+  description: ''
+}
+
+const parseNumberField = (value: string, fallback: number) => {
+  if (value.trim() === '') return fallback
+  const parsed = Number(value)
+  return Number.isNaN(parsed) ? fallback : parsed
+}
+
 export default function SalesOverview() {
   const { logout, user } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
@@ -17,6 +39,10 @@ export default function SalesOverview() {
   const [productStatusFilter, setProductStatusFilter] = useState<'all' | Product['status']>('all')
   const [saleStatusFilter, setSaleStatusFilter] = useState<'all' | Sale['status']>('all')
   const [channelFilter, setChannelFilter] = useState<'all' | Sale['channel']>('all')
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [productForm, setProductForm] = useState<ProductFormState>(initialProductForm)
+  const [isSavingProduct, setIsSavingProduct] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadData = async () => {
@@ -43,6 +69,61 @@ export default function SalesOverview() {
     }
     loadData()
   }, [])
+
+  const handleOpenEditProduct = (product: Product) => {
+    setEditingProduct(product)
+    setProductForm({
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      status: product.status,
+      engagementRewardPoints: product.engagementRewardPoints.toString(),
+      description: product.description || ''
+    })
+    setFormError(null)
+  }
+
+  const handleCloseEditProduct = () => {
+    setEditingProduct(null)
+    setProductForm(initialProductForm)
+    setFormError(null)
+  }
+
+  const handleProductFormChange = (field: keyof ProductFormState, value: string) => {
+    setProductForm(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleSubmitProductEdit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!editingProduct) return
+
+    setIsSavingProduct(true)
+    setFormError(null)
+    try {
+      const payload = {
+        price: parseNumberField(productForm.price, editingProduct.price),
+        stock: parseNumberField(productForm.stock, editingProduct.stock),
+        status: productForm.status,
+        engagementRewardPoints: parseNumberField(
+          productForm.engagementRewardPoints,
+          editingProduct.engagementRewardPoints
+        ),
+        description: productForm.description.trim()
+      }
+
+      const updatedProduct = await productAPI.update(editingProduct.id, payload)
+      setProducts(prev => prev.map(item => (item.id === updatedProduct.id ? updatedProduct : item)))
+      handleCloseEditProduct()
+    } catch (err: any) {
+      console.error('Erro ao atualizar produto:', err)
+      const message = err.response?.data?.message || 'Não foi possível atualizar o produto'
+      setFormError(message)
+    } finally {
+      setIsSavingProduct(false)
+    }
+  }
 
   const filteredProducts = useMemo(() => {
     let list = [...products]
@@ -173,8 +254,8 @@ export default function SalesOverview() {
   const showProducts = viewTab === 'products'
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6' }}>
-      <div style={{
+    <div className="page-container" style={{ minHeight: '100vh', backgroundColor: '#f3f4f6' }}>
+      <div className="page-header" style={{
         backgroundColor: 'white',
         borderBottom: '1px solid #e5e7eb',
         padding: '16px 24px',
@@ -190,7 +271,7 @@ export default function SalesOverview() {
             {user?.name} ({user?.role})
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        <div className="page-actions" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <Link
             to="/dashboard"
             style={{
@@ -314,36 +395,46 @@ export default function SalesOverview() {
           marginBottom: '24px',
           boxShadow: '0 1px 2px rgba(0,0,0,0.08)'
         }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-            <button
-              onClick={() => setViewTab('products')}
-              style={{
-                padding: '10px 16px',
-                borderRadius: '8px',
-                border: 'none',
-                fontWeight: 600,
-                cursor: 'pointer',
-                backgroundColor: showProducts ? '#111827' : '#e5e7eb',
-                color: showProducts ? 'white' : '#111827'
-              }}
+          <div
+            className="tab-controls"
+            style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', alignItems: 'flex-start' }}
+          >
+            <div className="tab-buttons" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+              <button
+                onClick={() => setViewTab('products')}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  backgroundColor: showProducts ? '#111827' : '#e5e7eb',
+                  color: showProducts ? 'white' : '#111827',
+                  flex: '0 0 auto'
+                }}
+              >
+                Catálogo de Produtos
+              </button>
+              <button
+                onClick={() => setViewTab('sales')}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  backgroundColor: !showProducts ? '#111827' : '#e5e7eb',
+                  color: !showProducts ? 'white' : '#111827',
+                  flex: '0 0 auto'
+                }}
+              >
+                Histórico de Vendas
+              </button>
+            </div>
+            <div
+              className="filters-stack"
+              style={{ marginLeft: 'auto', display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end', flex: '1 1 320px' }}
             >
-              Catálogo de Produtos
-            </button>
-            <button
-              onClick={() => setViewTab('sales')}
-              style={{
-                padding: '10px 16px',
-                borderRadius: '8px',
-                border: 'none',
-                fontWeight: 600,
-                cursor: 'pointer',
-                backgroundColor: !showProducts ? '#111827' : '#e5e7eb',
-                color: !showProducts ? 'white' : '#111827'
-              }}
-            >
-              Histórico de Vendas
-            </button>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <input
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
@@ -352,7 +443,9 @@ export default function SalesOverview() {
                   padding: '10px 14px',
                   borderRadius: '8px',
                   border: '1px solid #d1d5db',
-                  minWidth: '240px'
+                  flex: '1 1 220px',
+                  minWidth: '160px',
+                  width: '100%'
                 }}
               />
               {showProducts ? (
@@ -362,7 +455,9 @@ export default function SalesOverview() {
                   style={{
                     padding: '10px 14px',
                     borderRadius: '8px',
-                    border: '1px solid #d1d5db'
+                    border: '1px solid #d1d5db',
+                    flex: '1 1 160px',
+                    minWidth: '140px'
                   }}
                 >
                   <option value="all">Todos os status</option>
@@ -378,7 +473,9 @@ export default function SalesOverview() {
                     style={{
                       padding: '10px 14px',
                       borderRadius: '8px',
-                      border: '1px solid #d1d5db'
+                      border: '1px solid #d1d5db',
+                      flex: '1 1 160px',
+                      minWidth: '140px'
                     }}
                   >
                     <option value="all">Todos os status</option>
@@ -395,7 +492,9 @@ export default function SalesOverview() {
                     style={{
                       padding: '10px 14px',
                       borderRadius: '8px',
-                      border: '1px solid #d1d5db'
+                      border: '1px solid #d1d5db',
+                      flex: '1 1 160px',
+                      minWidth: '140px'
                     }}
                   >
                     <option value="all">Todos os canais</option>
@@ -417,8 +516,11 @@ export default function SalesOverview() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f9fafb', textAlign: 'left' }}>
-                    {['SKU', 'Produto', 'Categoria', 'Preço', 'Estoque', 'Status', 'Vendas', 'Pontos'].map(header => (
-                      <th key={header} style={{ padding: '12px', fontSize: '13px', color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>
+                    {['SKU', 'Produto', 'Categoria', 'Preço', 'Estoque', 'Status', 'Vendas', 'Pontos', 'Ações'].map(header => (
+                      <th
+                        key={header}
+                        style={{ padding: '12px', fontSize: '13px', color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}
+                      >
                         {header}
                       </th>
                     ))}
@@ -435,14 +537,31 @@ export default function SalesOverview() {
                       <td data-label="Categoria" style={{ padding: '12px', textTransform: 'capitalize' }}>{product.category}</td>
                       <td data-label="Preço" style={{ padding: '12px' }}>{currency.format(product.price)}</td>
                       <td data-label="Estoque" style={{ padding: '12px' }}>{product.stock}</td>
-                      <td data-label="Status" style={{ padding: '12px' }}>{renderStatusBadge(product.status)}</td>
+                      <td data-label="Status" style={{ padding: '12px' }}>{renderStatusBadge(product.status, 'product')}</td>
                       <td data-label="Vendas" style={{ padding: '12px' }}>{product.totalSales}</td>
                       <td data-label="Pontos" style={{ padding: '12px' }}>{product.engagementRewardPoints.toLocaleString('pt-BR')}</td>
+                      <td data-label="Ações" style={{ padding: '12px', textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditProduct(product)}
+                          style={{
+                            padding: '6px 16px',
+                            borderRadius: '6px',
+                            border: '1px solid #111827',
+                            backgroundColor: '#111827',
+                            color: 'white',
+                            fontWeight: 500,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Editar
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {filteredProducts.length === 0 && (
                     <tr>
-                      <td colSpan={8} style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>
+                      <td colSpan={9} style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>
                         Nenhum produto encontrado com os filtros atuais.
                       </td>
                     </tr>
@@ -455,7 +574,7 @@ export default function SalesOverview() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f9fafb', textAlign: 'left' }}>
-                    {['Venda', 'Cliente', 'Produto', 'Canal', 'Qtd', 'Valor Total', 'Status', 'Pontos (±)'].map(header => (
+                    {['Venda', 'Cliente', 'Produto', 'Canal', 'Qtd', 'Valor Total', 'Status', 'Pontos (+/-)'].map(header => (
                       <th key={header} style={{ padding: '12px', fontSize: '13px', color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>
                         {header}
                       </th>
@@ -549,6 +668,146 @@ export default function SalesOverview() {
           </div>
         </div>
       </div>
+      {editingProduct && (
+      <div
+        className="modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`edit-product-${editingProduct.id}`}
+      >
+        <div className="modal-card">
+          <div className="modal-header">
+            <div>
+              <h3 id={`edit-product-${editingProduct.id}`} style={{ margin: 0, fontSize: '20px', color: '#111827' }}>
+                Editar produto
+              </h3>
+              <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '14px' }}>
+                {editingProduct.name} • SKU {editingProduct.sku}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleCloseEditProduct}
+              aria-label="Fechar"
+              style={{
+                border: 'none',
+                background: 'transparent',
+                fontSize: '24px',
+                lineHeight: 1,
+                cursor: 'pointer',
+                color: '#6b7280'
+              }}
+            >
+              &times;
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmitProductEdit} className="modal-form" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {formError && (
+              <div style={{ padding: '12px', borderRadius: '8px', border: '1px solid #fecaca', backgroundColor: '#fee2e2', color: '#991b1b' }}>
+                {formError}
+              </div>
+            )}
+
+            <div className="modal-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', color: '#374151' }}>
+                Preço (R$)
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={productForm.price}
+                  onChange={e => handleProductFormChange('price', e.target.value)}
+                  placeholder={editingProduct.price.toString()}
+                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', color: '#374151' }}>
+                Estoque
+                <input
+                  type="number"
+                  min="0"
+                  value={productForm.stock}
+                  onChange={e => handleProductFormChange('stock', e.target.value)}
+                  placeholder={editingProduct.stock.toString()}
+                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', color: '#374151' }}>
+                Status
+                <select
+                  value={productForm.status}
+                  onChange={e => handleProductFormChange('status', e.target.value as Product['status'])}
+                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                >
+                  <option value="available">Disponível</option>
+                  <option value="out_of_stock">Sem estoque</option>
+                  <option value="inactive">Inativo</option>
+                </select>
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', color: '#374151' }}>
+                Pontos por venda
+                <input
+                  type="number"
+                  min="0"
+                  value={productForm.engagementRewardPoints}
+                  onChange={e => handleProductFormChange('engagementRewardPoints', e.target.value)}
+                  placeholder={editingProduct.engagementRewardPoints.toString()}
+                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                />
+              </label>
+            </div>
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', color: '#374151' }}>
+              Descrição
+              <textarea
+                rows={3}
+                value={productForm.description}
+                onChange={e => handleProductFormChange('description', e.target.value)}
+                placeholder={editingProduct.description || 'Detalhes exibidos para a equipe da loja.'}
+                style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', resize: 'vertical' }}
+              />
+            </label>
+
+            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={handleCloseEditProduct}
+                className="ghost-button"
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '8px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#111827',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSavingProduct}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: '#111827',
+                  color: 'white',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  minWidth: '160px',
+                  opacity: isSavingProduct ? 0.7 : 1
+                }}
+              >
+                {isSavingProduct ? 'Salvando...' : 'Salvar alterações'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      )}
     </div>
   )
 }

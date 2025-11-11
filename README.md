@@ -10,6 +10,12 @@ Interface administrativa (React + TypeScript + Vite) utilizada pelo time de Back
 - Layouts responsivos (cards → grid fluido, tabelas com rolagem horizontal, formulários em colunas adaptáveis).
 - Suporte ao Mock Service Worker para demonstrar o módulo sem depender de outros times.
 
+## Atualizações recentes (`feature/routes-permissions`)
+
+- Botão de edição por produto no módulo de vendas com modal administrativo, salvando via `PUT /products/:id`.
+- Ajustes de responsividade mobile (cabeçalhos flexíveis, filtros empilháveis, tabelas adaptáveis e modais fluidos).
+- Revisão dos filtros de financiamentos (remoção do botão duplicado "Novo Financiamento" e espaçamento consistente).
+
 ## Variáveis de ambiente
 
 ```env
